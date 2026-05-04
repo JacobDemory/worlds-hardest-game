@@ -4,10 +4,15 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 
 /**
  * Represents a rotating rectangular hazard.
+ *
+ * Collision detection uses the actual rotated rectangle shape instead of a
+ * square bounding box, so the player only dies when touching the visible hazard.
  */
 public class SpinningRectangle implements IntersectionDetectable {
     private final double centerX;
@@ -53,16 +58,16 @@ public class SpinningRectangle implements IntersectionDetectable {
 
     @Override
     public boolean intersects(Player player) {
-        // Approximation: use a bounding rectangle around the rotating hazard.
-        // This keeps gameplay responsive while avoiding heavy geometry code.
-        int boundingSize = Math.max(width, height);
-        Rectangle hazardBounds = new Rectangle(
-                (int) centerX - boundingSize / 2,
-                (int) centerY - boundingSize / 2,
-                boundingSize,
-                boundingSize
-        );
+        Area hazardArea = new Area(getRotatedShape());
+        hazardArea.intersect(new Area(player.getBounds()));
+        return !hazardArea.isEmpty();
+    }
 
-        return hazardBounds.intersects(player.getBounds());
+    private Shape getRotatedShape() {
+        Rectangle baseRectangle = new Rectangle(-width / 2, -height / 2, width, height);
+        AffineTransform transform = new AffineTransform();
+        transform.translate(centerX, centerY);
+        transform.rotate(Math.toRadians(rotation));
+        return transform.createTransformedShape(baseRectangle);
     }
 }

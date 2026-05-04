@@ -16,12 +16,12 @@ import java.util.List;
  * Main game class for a Java desktop game inspired by The World's Hardest Game.
  */
 public class WorldsHardestGame extends Game implements KeyListener {
-    public static final int WINDOW_WIDTH = 800;
-    public static final int WINDOW_HEIGHT = 600;
-    public static final int BOARD_X = 120;
+    public static final int WINDOW_WIDTH = 860;
+    public static final int WINDOW_HEIGHT = 640;
+    public static final int BOARD_X = 110;
     public static final int BOARD_Y = 130;
-    public static final int BOARD_WIDTH = 560;
-    public static final int BOARD_HEIGHT = 360;
+    public static final int BOARD_WIDTH = 640;
+    public static final int BOARD_HEIGHT = 390;
 
     // Backward-compatible aliases used by older helper classes.
     public static final int checkeredX = BOARD_X;
@@ -32,22 +32,69 @@ public class WorldsHardestGame extends Game implements KeyListener {
     private static final Rectangle START_ZONE = new Rectangle(BOARD_X, BOARD_Y, 90, BOARD_HEIGHT);
     private static final Rectangle GOAL_ZONE = new Rectangle(BOARD_X + BOARD_WIDTH - 90, BOARD_Y, 90, BOARD_HEIGHT);
 
-    private final Player player = new Player(BOARD_X + 35, BOARD_Y + BOARD_HEIGHT / 2.0 - Player.SIZE / 2.0);
+    private final Player player = new Player(START_ZONE.x + 35, START_ZONE.y + BOARD_HEIGHT / 2.0 - Player.SIZE / 2.0);
     private final List<Enemy> enemies = new ArrayList<>();
     private final List<SpinningRectangle> spinningHazards = new ArrayList<>();
     private final List<Rectangle> coins = new ArrayList<>();
+    private final List<LevelConfig> levels = new ArrayList<>();
 
     private boolean started = false;
     private boolean won = false;
+    private boolean campaignComplete = false;
+    private int levelIndex = 0;
     private int deaths = 0;
+    private int totalDeaths = 0;
     private int coinsCollected = 0;
-    private long startTime;
-    private long finishTime;
+    private long campaignStartTime;
+    private long levelStartTime;
+    private long levelFinishTime;
+    private long campaignFinishTime;
 
     public WorldsHardestGame() {
         super("World's Hardest Game - Java", WINDOW_WIDTH, WINDOW_HEIGHT);
         addKeyListener(this);
+        buildLevels();
         setupLevel();
+    }
+
+    private void buildLevels() {
+        levels.clear();
+
+        LevelConfig levelOne = new LevelConfig("Level 1: The Warmup", "Classic vertical patrols with a few coins.");
+        levelOne.enemies.add(new Enemy(260, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelOne.enemies.add(new Enemy(325, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelOne.enemies.add(new Enemy(390, BOARD_Y + 55, 12, 4.4, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelOne.enemies.add(new Enemy(455, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelOne.enemies.add(new Enemy(520, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelOne.coins.add(new Rectangle(BOARD_X + 250, BOARD_Y + 55, 14, 14));
+        levelOne.coins.add(new Rectangle(BOARD_X + 345, BOARD_Y + 320, 14, 14));
+        levelOne.coins.add(new Rectangle(BOARD_X + 475, BOARD_Y + 55, 14, 14));
+        levels.add(levelOne);
+
+        LevelConfig levelTwo = new LevelConfig("Level 2: Cross Traffic", "Horizontal and vertical enemies overlap in the center.");
+        levelTwo.enemies.add(new Enemy(255, BOARD_Y + 55, 12, 4.2, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelTwo.enemies.add(new Enemy(390, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.5, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelTwo.enemies.add(new Enemy(525, BOARD_Y + 55, 12, 4.2, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        levelTwo.enemies.add(new Enemy(BOARD_X + 220, BOARD_Y + 120, 11, 4.1, Enemy.Axis.HORIZONTAL, BOARD_X + 200, BOARD_X + BOARD_WIDTH - 200));
+        levelTwo.enemies.add(new Enemy(BOARD_X + BOARD_WIDTH - 220, BOARD_Y + 250, 11, 4.1, Enemy.Axis.HORIZONTAL, BOARD_X + 200, BOARD_X + BOARD_WIDTH - 200));
+        levelTwo.spinningHazards.add(new SpinningRectangle(BOARD_X + 325, BOARD_Y + 195, 85, 18, 2.2));
+        levelTwo.coins.add(new Rectangle(BOARD_X + 225, BOARD_Y + 325, 14, 14));
+        levelTwo.coins.add(new Rectangle(BOARD_X + 385, BOARD_Y + 70, 14, 14));
+        levelTwo.coins.add(new Rectangle(BOARD_X + 535, BOARD_Y + 325, 14, 14));
+        levels.add(levelTwo);
+
+        LevelConfig levelThree = new LevelConfig("Level 3: Spin Cycle", "Rotating hazards now matter, but collision matches the visible shape.");
+        levelThree.enemies.add(new Enemy(255, BOARD_Y + 60, 11, 4.8, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
+        levelThree.enemies.add(new Enemy(360, BOARD_Y + BOARD_HEIGHT - 60, 11, 5.0, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
+        levelThree.enemies.add(new Enemy(465, BOARD_Y + 60, 11, 4.8, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
+        levelThree.enemies.add(new Enemy(BOARD_X + 265, BOARD_Y + 105, 10, 4.7, Enemy.Axis.HORIZONTAL, BOARD_X + 205, BOARD_X + BOARD_WIDTH - 205));
+        levelThree.enemies.add(new Enemy(BOARD_X + BOARD_WIDTH - 265, BOARD_Y + 285, 10, 4.7, Enemy.Axis.HORIZONTAL, BOARD_X + 205, BOARD_X + BOARD_WIDTH - 205));
+        levelThree.spinningHazards.add(new SpinningRectangle(BOARD_X + 270, BOARD_Y + 195, 90, 18, 3.0));
+        levelThree.spinningHazards.add(new SpinningRectangle(BOARD_X + 430, BOARD_Y + 195, 90, 18, -3.0));
+        levelThree.coins.add(new Rectangle(BOARD_X + 240, BOARD_Y + 70, 14, 14));
+        levelThree.coins.add(new Rectangle(BOARD_X + 350, BOARD_Y + 190, 14, 14));
+        levelThree.coins.add(new Rectangle(BOARD_X + 500, BOARD_Y + 310, 14, 14));
+        levels.add(levelThree);
     }
 
     private void setupLevel() {
@@ -55,33 +102,52 @@ public class WorldsHardestGame extends Game implements KeyListener {
         spinningHazards.clear();
         coins.clear();
 
-        // Vertical patrols through the main lane.
-        enemies.add(new Enemy(250, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
-        enemies.add(new Enemy(310, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
-        enemies.add(new Enemy(370, BOARD_Y + 55, 12, 4.4, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
-        enemies.add(new Enemy(430, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
-        enemies.add(new Enemy(490, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        LevelConfig level = levels.get(levelIndex);
+        enemies.addAll(level.enemies);
+        spinningHazards.addAll(level.spinningHazards);
+        coins.addAll(level.coins);
 
-        // Horizontal patrols for variety.
-        enemies.add(new Enemy(BOARD_X + 230, BOARD_Y + 95, 10, 3.2, Enemy.Axis.HORIZONTAL, BOARD_X + 210, BOARD_X + BOARD_WIDTH - 210));
-        enemies.add(new Enemy(BOARD_X + BOARD_WIDTH - 230, BOARD_Y + 265, 10, 3.2, Enemy.Axis.HORIZONTAL, BOARD_X + 210, BOARD_X + BOARD_WIDTH - 210));
-
-        spinningHazards.add(new SpinningRectangle(BOARD_X + 210, BOARD_Y + 180, 80, 18, 2.5));
-        spinningHazards.add(new SpinningRectangle(BOARD_X + 350, BOARD_Y + 180, 80, 18, -2.5));
-
-        coins.add(new Rectangle(BOARD_X + 245, BOARD_Y + 55, 14, 14));
-        coins.add(new Rectangle(BOARD_X + 335, BOARD_Y + 310, 14, 14));
-        coins.add(new Rectangle(BOARD_X + 455, BOARD_Y + 55, 14, 14));
+        coinsCollected = 0;
+        player.setStartPosition(START_ZONE.x + 35, START_ZONE.y + BOARD_HEIGHT / 2.0 - Player.SIZE / 2.0);
+        player.reset();
     }
 
-    private void resetGame() {
+    private void resetCampaign() {
         started = true;
         won = false;
+        campaignComplete = false;
+        levelIndex = 0;
         deaths = 0;
-        coinsCollected = 0;
-        startTime = System.currentTimeMillis();
-        finishTime = 0;
-        player.reset();
+        totalDeaths = 0;
+        long now = System.currentTimeMillis();
+        campaignStartTime = now;
+        levelStartTime = now;
+        levelFinishTime = 0;
+        campaignFinishTime = 0;
+        buildLevels();
+        setupLevel();
+    }
+
+    private void restartCurrentLevel() {
+        started = true;
+        won = false;
+        campaignComplete = false;
+        deaths = 0;
+        levelStartTime = System.currentTimeMillis();
+        levelFinishTime = 0;
+        buildLevels();
+        setupLevel();
+    }
+
+    private void nextLevel() {
+        totalDeaths += deaths;
+        levelIndex++;
+
+        deaths = 0;
+        won = false;
+        levelFinishTime = 0;
+        levelStartTime = System.currentTimeMillis();
+        buildLevels();
         setupLevel();
     }
 
@@ -91,7 +157,7 @@ public class WorldsHardestGame extends Game implements KeyListener {
     }
 
     private void updateGame() {
-        if (!started || won) {
+        if (!started || won || campaignComplete) {
             return;
         }
 
@@ -115,9 +181,20 @@ public class WorldsHardestGame extends Game implements KeyListener {
 
         collectCoins();
 
-        if (GOAL_ZONE.contains(player.getBounds()) && coinsCollected == 3) {
-            won = true;
-            finishTime = System.currentTimeMillis();
+        if (GOAL_ZONE.contains(player.getBounds()) && coins.isEmpty()) {
+            completeLevel();
+        }
+    }
+
+
+    private void completeLevel() {
+        won = true;
+        levelFinishTime = System.currentTimeMillis();
+
+        if (levelIndex == levels.size() - 1) {
+            totalDeaths += deaths;
+            campaignComplete = true;
+            campaignFinishTime = levelFinishTime;
         }
     }
 
@@ -145,8 +222,10 @@ public class WorldsHardestGame extends Game implements KeyListener {
 
         if (!started) {
             drawStartOverlay(g);
+        } else if (campaignComplete) {
+            drawCampaignCompleteOverlay(g);
         } else if (won) {
-            drawWinOverlay(g);
+            drawLevelCompleteOverlay(g);
         }
     }
 
@@ -164,15 +243,22 @@ public class WorldsHardestGame extends Game implements KeyListener {
     }
 
     private void drawHud(Graphics2D g) {
+        LevelConfig level = levels.get(levelIndex);
+
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
-        g.drawString("World's Hardest Game", 32, 45);
+        g.drawString("World's Hardest Game", 32, 42);
 
-        g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString("Deaths: " + deaths, 32, 75);
-        g.drawString("Time: " + formatElapsedTime(), 130, 75);
-        g.drawString("Coins: " + coinsCollected + "/3", 250, 75);
-        g.drawString("Move: Arrow Keys   Restart: R", 520, 75);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString(level.name, 32, 70);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 15));
+        g.drawString(level.description, 32, 94);
+        g.drawString("Deaths: " + deaths, 32, 118);
+        g.drawString("Total Deaths: " + (totalDeaths + deaths), 130, 118);
+        g.drawString("Level Time: " + formatLevelTime(), 260, 118);
+        g.drawString("Coins: " + coinsCollected + "/" + (coinsCollected + coins.size()), 410, 118);
+        g.drawString("Move: Arrow Keys   Restart: R   New Game: N", 520, 118);
     }
 
     private void drawBoard(Graphics2D g) {
@@ -232,33 +318,69 @@ public class WorldsHardestGame extends Game implements KeyListener {
     }
 
     private void drawStartOverlay(Graphics2D g) {
-        drawOverlay(g, "Press ENTER to Start", "Collect all coins, avoid enemies, and reach the goal.");
+        drawOverlay(g, "Press ENTER to Start", "Clear 3 levels. Collect every coin before reaching the goal.",
+                "Arrow Keys move • R restarts the level • N restarts the campaign");
     }
 
-    private void drawWinOverlay(Graphics2D g) {
-        drawOverlay(g, "You Win!", "Deaths: " + deaths + "   Time: " + formatElapsedTime() + "   Press R to restart.");
+    private void drawLevelCompleteOverlay(Graphics2D g) {
+        drawOverlay(g, "Level Complete!",
+                "Deaths: " + deaths + "   Time: " + formatLevelTime(),
+                "Press ENTER for next level • Press R to replay this level • Press N for new game");
     }
 
-    private void drawOverlay(Graphics2D g, String title, String subtitle) {
-        g.setColor(new Color(0, 0, 0, 165));
+    private void drawCampaignCompleteOverlay(Graphics2D g) {
+        drawOverlay(g, "Campaign Complete!",
+                "Total Deaths: " + totalDeaths + "   Total Time: " + formatCampaignTime(),
+                "Press ENTER or N to start a new campaign");
+    }
+
+    private void drawOverlay(Graphics2D g, String title, String subtitle, String controls) {
+        g.setColor(new Color(0, 0, 0, 175));
         g.fillRect(0, 0, width, height);
 
-        g.setColor(Color.WHITE);
+        int panelWidth = 620;
+        int panelHeight = 210;
+        int panelX = (width - panelWidth) / 2;
+        int panelY = (height - panelHeight) / 2;
+
+        g.setColor(new Color(245, 247, 255));
+        g.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 28, 28);
+        g.setColor(new Color(35, 40, 85));
+        g.setStroke(new BasicStroke(4));
+        g.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 28, 28);
+
+        g.setColor(new Color(28, 32, 70));
         g.setFont(new Font("Arial", Font.BOLD, 42));
         int titleWidth = g.getFontMetrics().stringWidth(title);
-        g.drawString(title, (width - titleWidth) / 2, height / 2 - 25);
+        g.drawString(title, (width - titleWidth) / 2, panelY + 70);
 
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.setFont(new Font("Arial", Font.BOLD, 18));
         int subtitleWidth = g.getFontMetrics().stringWidth(subtitle);
-        g.drawString(subtitle, (width - subtitleWidth) / 2, height / 2 + 15);
+        g.drawString(subtitle, (width - subtitleWidth) / 2, panelY + 115);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        int controlsWidth = g.getFontMetrics().stringWidth(controls);
+        g.drawString(controls, (width - controlsWidth) / 2, panelY + 155);
     }
 
-    private String formatElapsedTime() {
-        long end = won ? finishTime : System.currentTimeMillis();
-        if (!started || startTime == 0) {
+    private String formatLevelTime() {
+        long end = won && levelFinishTime > 0 ? levelFinishTime : System.currentTimeMillis();
+        if (!started || levelStartTime == 0) {
             return "0.0s";
         }
-        double seconds = (end - startTime) / 1000.0;
+        return formatSeconds(end - levelStartTime);
+    }
+
+    private String formatCampaignTime() {
+        long end = campaignComplete && campaignFinishTime > 0 ? campaignFinishTime : System.currentTimeMillis();
+        if (!started || campaignStartTime == 0) {
+            return "0.0s";
+        }
+        return formatSeconds(end - campaignStartTime);
+    }
+
+    private String formatSeconds(long elapsedMillis) {
+        double seconds = elapsedMillis / 1000.0;
         return String.format("%.1fs", seconds);
     }
 
@@ -266,17 +388,27 @@ public class WorldsHardestGame extends Game implements KeyListener {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
 
-        if (key == KeyEvent.VK_ENTER && !started) {
-            resetGame();
+        if (key == KeyEvent.VK_ENTER && (!started || campaignComplete)) {
+            resetCampaign();
+            return;
+        }
+
+        if (key == KeyEvent.VK_ENTER && won && !campaignComplete) {
+            nextLevel();
             return;
         }
 
         if (key == KeyEvent.VK_R) {
-            resetGame();
+            restartCurrentLevel();
             return;
         }
 
-        if (!started || won) {
+        if (key == KeyEvent.VK_N) {
+            resetCampaign();
+            return;
+        }
+
+        if (!started || won || campaignComplete) {
             return;
         }
 
@@ -320,5 +452,18 @@ public class WorldsHardestGame extends Game implements KeyListener {
     public static void main(String[] args) {
         WorldsHardestGame game = new WorldsHardestGame();
         game.runGameLoop();
+    }
+
+    private static class LevelConfig {
+        private final String name;
+        private final String description;
+        private final List<Enemy> enemies = new ArrayList<>();
+        private final List<SpinningRectangle> spinningHazards = new ArrayList<>();
+        private final List<Rectangle> coins = new ArrayList<>();
+
+        private LevelConfig(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
     }
 }

@@ -12,8 +12,8 @@ public class Player {
 
     private double x;
     private double y;
-    private final double startX;
-    private final double startY;
+    private double startX;
+    private double startY;
     private final double speed = 4.5;
 
     private boolean movingUp;
@@ -22,9 +22,13 @@ public class Player {
     private boolean movingRight;
 
     public Player(double startX, double startY) {
+        setStartPosition(startX, startY);
+        reset();
+    }
+
+    public void setStartPosition(double startX, double startY) {
         this.startX = startX;
         this.startY = startY;
-        reset();
     }
 
     public void reset() {
@@ -70,14 +74,6 @@ public class Player {
 
     public Rectangle getBounds() {
         return new Rectangle((int) x, (int) y, SIZE, SIZE);
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
     }
 
     public void setMovingUp(boolean movingUp) {

@@ -1,26 +1,27 @@
 # World's Hardest Game (Java)
 
-A Java desktop game inspired by *The World's Hardest Game*, built with AWT/Swing-style rendering, keyboard input, collision detection, enemy movement, collectibles, and skill-based gameplay.
+A Java desktop game inspired by *The World's Hardest Game*, built with AWT/Swing-style rendering, keyboard input, collision detection, enemy movement, collectibles, levels, and skill-based gameplay.
 
-This project began as an early college programming assignment and was refactored into a cleaner game development and object-oriented programming showcase.
+This project began as an early college programming assignment and was overhauled into a cleaner game development and object-oriented programming showcase.
 
 ---
 
 ## Features
 Recent additions are in **bold**
 - Player movement using keyboard input
-- Moving enemy obstacles with vertical and horizontal patrol patterns
-- Spinning obstacle hazards
-- Collision detection between the player and hazards
+- Moving enemy obstacles with horizontal and vertical patrol patterns
+- Spinning rectangular hazards
+- Collision detection between the player and enemies
+- **Accurate collision detection for spinning hazards using rotated shape intersection**
 - Respawn behavior after collisions
-- Win condition when the player collects all coins and reaches the goal area
+- Death tracking instead of negative score
 - Timer tracking elapsed play time
-- Death tracking instead of negative score values
-- **Start screen with instructions**
-- **Restart functionality using the `R` key**
-- **Cleaner HUD showing deaths, time, coins, and controls**
-- **Updated board design with start/goal zones and a grid-based playfield**
-- **Refactored Java classes for clearer game state, movement, and rendering logic**
+- Coins/collectibles required before completing each level
+- **Three playable levels with increasing difficulty**
+- Start screen, level-complete screen, and campaign-complete screen
+- Restart current level with `R`
+- Restart full game with `N`
+- Cleaner HUD showing level, deaths, total deaths, time, and coins
 
 ---
 
@@ -35,16 +36,15 @@ Recent additions are in **bold**
 
 ## Gameplay
 
-Navigate the red player square from the starting safe zone to the goal zone while avoiding moving enemies and spinning obstacles. Collect all coins before reaching the goal to win.
+Navigate the red player square from the start zone to the goal zone while avoiding blue enemies and pink spinning hazards. Each level requires collecting all coins before the goal can be completed.
 
 Controls:
 ```txt
-Arrow Keys - Move player
-Enter      - Start game
-R          - Restart game
+Arrow Keys: Move
+Enter: Start / Next Level
+R: Restart Current Level
+N: Restart Full Game
 ```
-
-> Screenshot coming soon.
 
 ---
 
@@ -91,40 +91,40 @@ worlds-hardest-game/
 ## Main Classes
 
 ### `WorldsHardestGame`
-Controls the main game setup, game loop, rendering, win condition, timer, deaths, coins, enemies, and keyboard input.
+Controls the main game setup, game loop, rendering, levels, HUD, win state, timer, score/death tracking, enemies, collectibles, and keyboard input.
 
 ### `Player`
-Represents the controllable red square, including movement flags, boundary checks, respawn behavior, and drawing logic.
+Represents the controllable player square, including movement flags, boundary checks, respawn behavior, and drawing logic.
 
 ### `Enemy`
-Represents circular hazards that patrol horizontally or vertically and collide with the player.
+Represents moving circular hazards that patrol horizontally or vertically and use circle-rectangle collision detection against the player.
 
 ### `SpinningRectangle`
-Represents rotating rectangular hazards that add additional obstacle variety.
+Represents rotating rectangular hazards and uses shape-based collision detection so the player only dies when touching the visible rotating rectangle.
 
 ### `Game`
-Handles the desktop window and double-buffered drawing canvas.
+Handles the Java window/canvas setup and double-buffered drawing.
 
 ---
 
 ## What I Learned
 
-- How to build a basic Java desktop game
+- How to build a Java desktop game
 - How game loops update and repaint the screen
 - How to handle keyboard input in Java
-- How collision detection works with custom game objects
-- How object-oriented design can be used to model players, enemies, hazards, and gameplay state
-- How an early programming project can be refactored into cleaner, more maintainable code
+- How collision detection works with circles, rectangles, and rotated shapes
+- How to structure levels and game state
+- How object-oriented design can model players, enemies, hazards, and gameplay systems
+- How early projects can be refactored into cleaner, more maintainable code
 
 ---
 
 ## Future Improvements
 
-- Add multiple levels with increasing difficulty
-- Add additional enemy path patterns
+- Add more levels with different maze layouts
+- Add wall obstacles instead of only open-board hazards
+- Add a level-select screen
 - Add sound effects and background music
-- Add a menu and level-select screen
-- Add persistent best times and lowest-death records
+- Add persistent best times/death counts
 - Add screenshots or a short gameplay demo
-- Improve collision precision for spinning obstacles
-- Add more polished visual assets
+- Improve visual polish with custom sprites or smoother animations
