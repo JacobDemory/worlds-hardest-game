@@ -1,362 +1,324 @@
 package game;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents the main game class for "World's Hardest Game".
- * Extends the Game class and includes the game logic, player, enemies, and the checkered board.
+ * Main game class for a Java desktop game inspired by The World's Hardest Game.
  */
-public class WorldsHardestGame extends Game {
-	// Inner class: Timer
-	private static class Timer {
-		protected long startTime;
+public class WorldsHardestGame extends Game implements KeyListener {
+    public static final int WINDOW_WIDTH = 800;
+    public static final int WINDOW_HEIGHT = 600;
+    public static final int BOARD_X = 120;
+    public static final int BOARD_Y = 130;
+    public static final int BOARD_WIDTH = 560;
+    public static final int BOARD_HEIGHT = 360;
 
-		/**
-		 * Constructs a Timer and initializes the start time.
-		 */
-		public Timer() {
-			this.startTime = System.currentTimeMillis();
-		}
+    // Backward-compatible aliases used by older helper classes.
+    public static final int checkeredX = BOARD_X;
+    public static final int checkeredY = BOARD_Y;
+    public static final int checkeredSize = BOARD_HEIGHT;
 
-		/**
-		 * Gets the elapsed time since the timer started.
-		 *
-		 * @return The elapsed time in milliseconds.
-		 */
-		public long getElapsedTime() {
-			return System.currentTimeMillis() - startTime;
-		}
-	}
+    private static final Rectangle PLAY_AREA = new Rectangle(BOARD_X, BOARD_Y, BOARD_WIDTH, BOARD_HEIGHT);
+    private static final Rectangle START_ZONE = new Rectangle(BOARD_X, BOARD_Y, 90, BOARD_HEIGHT);
+    private static final Rectangle GOAL_ZONE = new Rectangle(BOARD_X + BOARD_WIDTH - 90, BOARD_Y, 90, BOARD_HEIGHT);
 
-	// Inner class: Score
-	private static class Score {
-		private int score;
+    private final Player player = new Player(BOARD_X + 35, BOARD_Y + BOARD_HEIGHT / 2.0 - Player.SIZE / 2.0);
+    private final List<Enemy> enemies = new ArrayList<>();
+    private final List<SpinningRectangle> spinningHazards = new ArrayList<>();
+    private final List<Rectangle> coins = new ArrayList<>();
 
-		/**
-		 * Constructs a Score with an initial score of 0.
-		 */
-		public Score() {
-			this.score = 0;
-		}
+    private boolean started = false;
+    private boolean won = false;
+    private int deaths = 0;
+    private int coinsCollected = 0;
+    private long startTime;
+    private long finishTime;
 
-		/**
-		 * Decreases the score by the specified points.
-		 *
-		 * @param points The points to decrease the score by.
-		 */
-		public void decreaseScore(int points) {
-			score -= points;
-		}
+    public WorldsHardestGame() {
+        super("World's Hardest Game - Java", WINDOW_WIDTH, WINDOW_HEIGHT);
+        addKeyListener(this);
+        setupLevel();
+    }
 
-		/**
-		 * Gets the current score.
-		 *
-		 * @return The current score.
-		 */
-		public int getScore() {
-			return score;
-		}
-	}
+    private void setupLevel() {
+        enemies.clear();
+        spinningHazards.clear();
+        coins.clear();
 
-	private Timer gameTimer;
-	protected double elapsedTime;
-	private Score playerScore;
-	protected static int width = 800;
-	protected static int height = 600;
-	protected static int checkeredSize = 400;  // Adjust the size as needed
-	protected static int checkeredX = (width - checkeredSize) / 2;
-	protected static int checkeredY = (height - checkeredSize) / 2;
-	protected Player player;  // Instance of the Player class
-	protected ArrayList<Enemy> enemies = new ArrayList<>();
-	protected Enemy enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9;  // Instances of the Enemy class
-	protected SpinningRectangle spinningRectangle1;
-	protected SpinningRectangle spinningRectangle2;
-	protected boolean gameCompleted = false;
+        // Vertical patrols through the main lane.
+        enemies.add(new Enemy(250, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        enemies.add(new Enemy(310, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        enemies.add(new Enemy(370, BOARD_Y + 55, 12, 4.4, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        enemies.add(new Enemy(430, BOARD_Y + BOARD_HEIGHT - 55, 12, 4.0, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
+        enemies.add(new Enemy(490, BOARD_Y + 55, 12, 3.6, Enemy.Axis.VERTICAL, BOARD_Y + 30, BOARD_Y + BOARD_HEIGHT - 30));
 
-	/**
-	 * Constructs the WorldsHardestGame, initializes the player, enemies, and sets up the game.
-	 */
-	public WorldsHardestGame() {
-		super("WorldsHardestGame!", 800, 600);
-		this.setFocusable(true);
-		this.requestFocus();
+        // Horizontal patrols for variety.
+        enemies.add(new Enemy(BOARD_X + 230, BOARD_Y + 95, 10, 3.2, Enemy.Axis.HORIZONTAL, BOARD_X + 210, BOARD_X + BOARD_WIDTH - 210));
+        enemies.add(new Enemy(BOARD_X + BOARD_WIDTH - 230, BOARD_Y + 265, 10, 3.2, Enemy.Axis.HORIZONTAL, BOARD_X + 210, BOARD_X + BOARD_WIDTH - 210));
 
-		// Initialize the player here
-		player = new Player(new Point(215, 290), 0);
-		enemy1 = new Enemy(280, 140, 10, 4.0);
-		enemy2 = new Enemy(310, 180, 10, 4.0);
-		enemy3 = new Enemy(340, 220, 10, 4.0);
-		enemy4 = new Enemy(370, 300, 10, 6.0);
-		enemy5 = new Enemy(400, 300, 10, 6.0);
-		enemy6 = new Enemy(430, 300, 10, 6.0);
-		enemy7 = new Enemy(460, 380, 10, 4.0);
-		enemy8 = new Enemy(490, 420, 10, 4.0);
-		enemy9 = new Enemy(520, 460, 10, 4.0);
+        spinningHazards.add(new SpinningRectangle(BOARD_X + 210, BOARD_Y + 180, 80, 18, 2.5));
+        spinningHazards.add(new SpinningRectangle(BOARD_X + 350, BOARD_Y + 180, 80, 18, -2.5));
 
-		spinningRectangle1 = new SpinningRectangle(new Point(275, 150), 2.0);
-		spinningRectangle2 = new SpinningRectangle(new Point(475, 440), 2.0);
+        coins.add(new Rectangle(BOARD_X + 245, BOARD_Y + 55, 14, 14));
+        coins.add(new Rectangle(BOARD_X + 335, BOARD_Y + 310, 14, 14));
+        coins.add(new Rectangle(BOARD_X + 455, BOARD_Y + 55, 14, 14));
+    }
 
-		enemies.add(enemy1);
-		enemies.add(enemy2);
-		enemies.add(enemy3);
-		enemies.add(enemy4);
-		enemies.add(enemy5);
-		enemies.add(enemy6);
-		enemies.add(enemy7);
-		enemies.add(enemy8);
-		enemies.add(enemy9);
+    private void resetGame() {
+        started = true;
+        won = false;
+        deaths = 0;
+        coinsCollected = 0;
+        startTime = System.currentTimeMillis();
+        finishTime = 0;
+        player.reset();
+        setupLevel();
+    }
 
-		// Register the player as a KeyListener
-		this.addKeyListener(keyListener);
+    private void respawnPlayer() {
+        deaths++;
+        player.reset();
+    }
 
-		this.gameTimer = new Timer();
+    private void updateGame() {
+        if (!started || won) {
+            return;
+        }
 
-		this.playerScore = new Score();
-	}
+        player.move(PLAY_AREA);
 
-	/**
-	 * Checks if the player is in the right green area.
-	 *
-	 * @param player The player object.
-	 * @return True if the player is in the right green area, false otherwise.
-	 */
-	private boolean isInRightGreenArea(Player player) {
-		int eighthWidth = checkeredSize / 8;
-		int rightGreenX = checkeredX + 7 * eighthWidth;
-		int rightGreenY = checkeredY;
-		int playerX = (int) player.position.getX();
-		int playerY = (int) player.position.getY();
+        for (Enemy enemy : enemies) {
+            enemy.move();
+            if (enemy.intersects(player)) {
+                respawnPlayer();
+                return;
+            }
+        }
 
-		return playerX >= rightGreenX && playerX + 20 <= rightGreenX + eighthWidth &&
-				playerY >= rightGreenY && playerY <= rightGreenY + checkeredSize;
-	}
+        for (SpinningRectangle hazard : spinningHazards) {
+            hazard.move();
+            if (hazard.intersects(player)) {
+                respawnPlayer();
+                return;
+            }
+        }
 
-	/**
-	 * Draws the game elements, including the background, checkered pattern, enemies, spinning rectangles,
-	 * and the player. Also handles player movement and collision detection.
-	 *
-	 * @param brush The Graphics object used for painting.
-	 */
-	public void paint(Graphics brush) {
-		if (!gameCompleted) {
-			// Draw the light blue background
-			brush.setColor(new Color(173, 216, 230));  // Light blue color
-			brush.fillRect(0, 0, width, height);
+        collectCoins();
 
-			// Draw the black border around the checkered area
-			brush.setColor(Color.black);
-			brush.fillRect(checkeredX - 4, checkeredY - 4, checkeredSize + 8, checkeredSize + 8);
+        if (GOAL_ZONE.contains(player.getBounds()) && coinsCollected == 3) {
+            won = true;
+            finishTime = System.currentTimeMillis();
+        }
+    }
 
-			// Draw the checkered pattern with larger checkers
-			int cellSize = 40;  // Adjust the size as needed
+    private void collectCoins() {
+        Rectangle playerBounds = player.getBounds();
 
-			for (int col = 0; col < checkeredSize / cellSize; col++) {
-				for (int row = 0; row < checkeredSize / cellSize; row++) {
-					// Alternate between white and grey cells
-					if ((col + row) % 2 == 0) {
-						brush.setColor(Color.white);
-					} else {
-						brush.setColor(Color.lightGray);
-					}
+        for (int i = coins.size() - 1; i >= 0; i--) {
+            if (playerBounds.intersects(coins.get(i))) {
+                coins.remove(i);
+                coinsCollected++;
+            }
+        }
+    }
 
-					int x = checkeredX + col * cellSize;
-					int y = checkeredY + row * cellSize;
+    @Override
+    public void paint(Graphics brush) {
+        updateGame();
 
-					brush.fillRect(x, y, cellSize, cellSize);
-				}
-			}
+        Graphics2D g = (Graphics2D) brush;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			// Draw the left translucent green area on top of the checkered pattern
-			brush.setColor(new Color(0, 255, 0, 100));  // Translucent green color
-			int checkpointWidth = checkeredSize / 8;
-			brush.fillRect(checkeredX, checkeredY, checkpointWidth, checkeredSize);
+        drawBackground(g);
+        drawHud(g);
+        drawBoard(g);
 
-			// Draw the right translucent green area on top of the checkered pattern
-			brush.fillRect(checkeredX + 7 * checkpointWidth, checkeredY, checkpointWidth, checkeredSize);
+        if (!started) {
+            drawStartOverlay(g);
+        } else if (won) {
+            drawWinOverlay(g);
+        }
+    }
 
-			if (player != null) {
-				if (isInRightGreenArea(player) && !gameCompleted) {
-					// Print the completion message
-					System.out.println("Congratulations! You completed the game.");
+    private void drawBackground(Graphics2D g) {
+        g.setColor(new Color(22, 24, 50));
+        g.fillRect(0, 0, width, height);
 
-					// Set the gameCompleted flag to true to prevent further movement
-					gameCompleted = true;
-				}
-			}
+        g.setColor(new Color(36, 41, 89));
+        for (int y = 0; y < height; y += 40) {
+            g.drawLine(0, y, width, y);
+        }
+        for (int x = 0; x < width; x += 40) {
+            g.drawLine(x, 0, x, height);
+        }
+    }
 
-			if (enemies != null) {
-				enemies.forEach(enemy -> {
-					enemy.move();
+    private void drawHud(Graphics2D g) {
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.setColor(Color.WHITE);
+        g.drawString("World's Hardest Game", 32, 45);
 
-					if (player != null && enemy.intersects(player)) {
-						// Respawn player in the left green area
-						playerScore.decreaseScore(1);
-						player.respawn();
-					}
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString("Deaths: " + deaths, 32, 75);
+        g.drawString("Time: " + formatElapsedTime(), 130, 75);
+        g.drawString("Coins: " + coinsCollected + "/3", 250, 75);
+        g.drawString("Move: Arrow Keys   Restart: R", 520, 75);
+    }
 
-					enemy.paint(brush);
-				});
-			}
+    private void drawBoard(Graphics2D g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(BOARD_X - 5, BOARD_Y - 5, BOARD_WIDTH + 10, BOARD_HEIGHT + 10);
 
-			if (spinningRectangle1 != null && spinningRectangle2 != null) {
-				spinningRectangle1.move();
+        g.setColor(new Color(238, 238, 255));
+        g.fillRect(BOARD_X, BOARD_Y, BOARD_WIDTH, BOARD_HEIGHT);
 
-				if (player != null && spinningRectangle1.intersects(player)) {
-					// Respawn player in the left green area
-					playerScore.decreaseScore(1);
-					player.respawn();
-				}
+        drawGrid(g);
+        drawZones(g);
+        drawCoins(g);
 
-				spinningRectangle1.paint(brush);
-				spinningRectangle2.move();
+        for (Enemy enemy : enemies) {
+            enemy.paint(g);
+        }
 
-				if (player != null && spinningRectangle2.intersects(player)) {
-					// Respawn player in the left green area
-					playerScore.decreaseScore(1);
-					player.respawn();
-				}
+        for (SpinningRectangle hazard : spinningHazards) {
+            hazard.paint(g);
+        }
 
-				spinningRectangle2.paint(brush);
-			}
+        player.paint(g);
 
-			// Draw the player
-			brush.setColor(Color.red);
-			if (player != null && !gameCompleted) {
-				// Check for collisions before moving
-				player.move(checkeredX, checkeredY, checkeredSize);
-				player.paint(brush);
+        g.setColor(Color.BLACK);
+        g.setStroke(new BasicStroke(3));
+        g.drawRect(BOARD_X, BOARD_Y, BOARD_WIDTH, BOARD_HEIGHT);
+    }
 
-				// Display square's position for debugging
-				brush.setColor(Color.black);
-				brush.drawString("Square Position: (" + player.position.getX() + ", " + player.position.getY() + ")", 10, 20);
-				brush.drawString("Elapsed Time: " + elapsedTime + " seconds", 10, 40);
-				if (playerScore != null) {
-					brush.drawString("Player's Score: " + playerScore.getScore(), 675, 20);
-				}
-			}
+    private void drawGrid(Graphics2D g) {
+        g.setColor(new Color(205, 205, 235));
+        for (int x = BOARD_X; x <= BOARD_X + BOARD_WIDTH; x += 40) {
+            g.drawLine(x, BOARD_Y, x, BOARD_Y + BOARD_HEIGHT);
+        }
+        for (int y = BOARD_Y; y <= BOARD_Y + BOARD_HEIGHT; y += 40) {
+            g.drawLine(BOARD_X, y, BOARD_X + BOARD_WIDTH, y);
+        }
+    }
 
-		} else {
-			// Draw the "Game Over" screen
-			brush.setColor(Color.black);
-			brush.setFont(new Font("Arial", Font.BOLD, 72));
-			brush.drawString("Game Won!!", width / 2 - 200, height / 2);
-			brush.setFont(new Font("Arial", Font.BOLD, 24));
-			brush.drawString("Player's Final Score: " + playerScore.getScore(), width / 2 - 200, height / 2 + 100);
-		}
-	}
+    private void drawZones(Graphics2D g) {
+        g.setColor(new Color(135, 232, 135));
+        g.fill(START_ZONE);
+        g.fill(GOAL_ZONE);
 
-	/**
-	 * Handles key press events, allowing the player to control movement and spinning.
-	 */
-	protected KeyListener keyListener = new KeyListener() {
-		// Inside the handleKeyPress method
-		@Override
-		public void keyPressed(KeyEvent e) {
-			int key = e.getKeyCode();
-			switch (key) {
-				case KeyEvent.VK_UP:
-					player.setMovingUp(true);  // Start moving forward
-					break;
-				case KeyEvent.VK_DOWN:
-					player.setMovingDown(true);  // Start moving forward
-					break;
-				case KeyEvent.VK_LEFT:
-					player.setMovingLeft(true);  // Start moving forward
-					break;
-				case KeyEvent.VK_RIGHT:
-					player.setMovingRight(true);  // Start moving forward
-					break;
-				case KeyEvent.VK_E:
-					player.setSpinning(true);
-					break;
-				// Handle other keys if needed
-			}
-		}
+        g.setColor(new Color(25, 135, 55));
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("START", START_ZONE.x + 18, START_ZONE.y + 30);
+        g.drawString("GOAL", GOAL_ZONE.x + 24, GOAL_ZONE.y + 30);
+    }
 
-		// Inside the handleKeyRelease method
-		@Override
-		public void keyReleased(KeyEvent e) {
-			int key = e.getKeyCode();
-			switch (key) {
-				case KeyEvent.VK_UP:
-					player.setMovingUp(false);  // Start moving forward
-					break;
-				case KeyEvent.VK_DOWN:
-					player.setMovingDown(false);  // Start moving forward
-					break;
-				case KeyEvent.VK_LEFT:
-					player.setMovingLeft(false);  // Start moving forward
-					break;
-				case KeyEvent.VK_RIGHT:
-					player.setMovingRight(false);  // Start moving forward
-					break;
-				case KeyEvent.VK_E:
-					player.setSpinning(false);
-					break;
-				// Handle other keys if needed
-			}
-		}
+    private void drawCoins(Graphics2D g) {
+        for (Rectangle coin : coins) {
+            g.setColor(new Color(255, 208, 45));
+            g.fillOval(coin.x, coin.y, coin.width, coin.height);
+            g.setColor(new Color(145, 95, 0));
+            g.drawOval(coin.x, coin.y, coin.width, coin.height);
+        }
+    }
 
-		@Override
-		public void keyTyped(KeyEvent e) {
-			// Leave this method empty
-		}
-	};
+    private void drawStartOverlay(Graphics2D g) {
+        drawOverlay(g, "Press ENTER to Start", "Collect all coins, avoid enemies, and reach the goal.");
+    }
 
-	/**
-	 * Processes key events, calling the corresponding KeyListener methods based on the event type.
-	 *
-	 * @param e The KeyEvent to be processed.
-	 */
-	public void processKeyEvent(KeyEvent e) {
-		// Example: Call the KeyListener methods based on the event type
-		if (e.getID() == KeyEvent.KEY_PRESSED) {
-			keyListener.keyPressed(e);
-		} else if (e.getID() == KeyEvent.KEY_RELEASED) {
-			keyListener.keyReleased(e);
-		} else if (e.getID() == KeyEvent.KEY_TYPED) {
-			keyListener.keyTyped(e);
-		}
-	}
+    private void drawWinOverlay(Graphics2D g) {
+        drawOverlay(g, "You Win!", "Deaths: " + deaths + "   Time: " + formatElapsedTime() + "   Press R to restart.");
+    }
 
-	/**
-	 * Runs the main game loop, updating the game logic, repainting the screen, and controlling the frame rate.
-	 */
-	private void runGameLoop() {
-		while (true) {
-			// Update game logic
-			updateGame();
+    private void drawOverlay(Graphics2D g, String title, String subtitle) {
+        g.setColor(new Color(0, 0, 0, 165));
+        g.fillRect(0, 0, width, height);
 
-			// Repaint the screen
-			repaint();
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 42));
+        int titleWidth = g.getFontMetrics().stringWidth(title);
+        g.drawString(title, (width - titleWidth) / 2, height / 2 - 25);
 
-			// Sleep to control the frame rate (adjust as needed)
-			try {
-				Thread.sleep(16); // Aim for approximately 60 frames per second
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        int subtitleWidth = g.getFontMetrics().stringWidth(subtitle);
+        g.drawString(subtitle, (width - subtitleWidth) / 2, height / 2 + 15);
+    }
 
-	/**
-	 * Updates the game logic, for example, printing the elapsed time using the Timer.
-	 */
-	private void updateGame() {
-		elapsedTime = gameTimer.getElapsedTime();
-		elapsedTime /= 1000.0; // Convert milliseconds to seconds
-	}
+    private String formatElapsedTime() {
+        long end = won ? finishTime : System.currentTimeMillis();
+        if (!started || startTime == 0) {
+            return "0.0s";
+        }
+        double seconds = (end - startTime) / 1000.0;
+        return String.format("%.1fs", seconds);
+    }
 
-	/**
-	 * The main method to start the game.
-	 *
-	 * @param args Command-line arguments (unused).
-	 */
-	public static void main(String[] args) {
-		WorldsHardestGame game = new WorldsHardestGame();
-		game.runGameLoop();
-	}
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        if (key == KeyEvent.VK_ENTER && !started) {
+            resetGame();
+            return;
+        }
+
+        if (key == KeyEvent.VK_R) {
+            resetGame();
+            return;
+        }
+
+        if (!started || won) {
+            return;
+        }
+
+        switch (key) {
+            case KeyEvent.VK_UP -> player.setMovingUp(true);
+            case KeyEvent.VK_DOWN -> player.setMovingDown(true);
+            case KeyEvent.VK_LEFT -> player.setMovingLeft(true);
+            case KeyEvent.VK_RIGHT -> player.setMovingRight(true);
+            default -> { }
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP -> player.setMovingUp(false);
+            case KeyEvent.VK_DOWN -> player.setMovingDown(false);
+            case KeyEvent.VK_LEFT -> player.setMovingLeft(false);
+            case KeyEvent.VK_RIGHT -> player.setMovingRight(false);
+            default -> { }
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Not used.
+    }
+
+    private void runGameLoop() {
+        while (true) {
+            repaint();
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        WorldsHardestGame game = new WorldsHardestGame();
+        game.runGameLoop();
+    }
 }

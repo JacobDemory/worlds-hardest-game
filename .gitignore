@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.settings/
+.classpath
+.project
+
+# Java
+bin/
+*.class
+
+# Misc
+__MACOSX/

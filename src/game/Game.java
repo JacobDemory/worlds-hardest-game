@@ -1,49 +1,59 @@
 package game;
 
-/*
-CLASS: Game
-DESCRIPTION: A painted canvas in its own window, updated every tenth second.
-USAGE: Extended by YourGameName.
-NOTE: You don't need to understand the details here, no fiddling neccessary.*/
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Canvas;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
+/**
+ * Base canvas/window class for simple Java desktop games.
+ *
+ * This class handles window creation and double-buffered drawing so subclasses
+ * can focus on game logic and rendering.
+ */
 abstract class Game extends Canvas {
-  protected boolean on = true;
-  protected int width, height;
-  protected Image buffer;
-  
-	public Game(String name, int inWidth, int inHeight) {
-	  width = inWidth;
-	  height = inHeight;
-	  
-	  // Frame can be read as 'window' here.
-    Frame frame = new Frame(name);
-    frame.add(this);
-    frame.setSize(width,height);
-    frame.setVisible(true);
-    frame.setResizable(false);
-    frame.addWindowListener(new WindowAdapter() { 
-      public void windowClosing(WindowEvent e) {System.exit(0);} 
-    });
-    
-    buffer = createImage(width, height);
-	}
-  
-  // 'paint' will be called every tenth of a second that the game is on.
-	abstract public void paint(Graphics brush);
-  
-  // 'update' paints to a buffer then to the screen, then waits a tenth of
-  // a second before repeating itself, assuming the game is on. This is done
-  // to avoid a choppy painting experience if repainted in pieces.
-  public void update(Graphics brush) {
-    paint(buffer.getGraphics());
-		brush.drawImage(buffer,0,0,this);
-    if (on) {sleep(10); repaint();}
-  }
-  
-  // 'sleep' is a simple helper function used in 'update'.
-  private void sleep(int time) {
-    try {Thread.sleep(time);} catch(Exception exc){};
-  }
+    protected final int width;
+    protected final int height;
+    private Image buffer;
+
+    public Game(String name, int width, int height) {
+        this.width = width;
+        this.height = height;
+
+        Frame frame = new Frame(name);
+        frame.add(this);
+        frame.setSize(width, height);
+        frame.setResizable(false);
+        frame.setLocationRelativeTo(null);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+
+        setPreferredSize(new Dimension(width, height));
+        setFocusable(true);
+        frame.pack();
+        frame.setVisible(true);
+        requestFocus();
+    }
+
+    @Override
+    public abstract void paint(Graphics brush);
+
+    @Override
+    public void update(Graphics brush) {
+        if (buffer == null) {
+            buffer = createImage(width, height);
+        }
+
+        Graphics bufferGraphics = buffer.getGraphics();
+        paint(bufferGraphics);
+        brush.drawImage(buffer, 0, 0, this);
+        bufferGraphics.dispose();
+    }
 }
