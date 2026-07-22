@@ -7,17 +7,16 @@ This project began as an early college programming assignment and was overhauled
 ---
 
 ## Features
-Recent additions are in **bold**
 - Player movement using keyboard input
 - Moving enemy obstacles with horizontal and vertical patrol patterns
 - Spinning rectangular hazards
 - Collision detection between the player and enemies
-- **Accurate collision detection for spinning hazards using rotated shape intersection**
+- Accurate collision detection for spinning hazards using rotated shape intersection
 - Respawn behavior after collisions
 - Death tracking instead of negative score
 - Timer tracking elapsed play time
 - Coins/collectibles required before completing each level
-- **Three playable levels with increasing difficulty**
+- Three playable levels with increasing difficulty
 - Start screen, level-complete screen, and campaign-complete screen
 - Restart current level with `R`
 - Restart full game with `N`
@@ -85,7 +84,7 @@ a workflow artifact on every push and pull request.
 
 ## Downloadable Release
 
-The repository is prepared for a GitHub `v1.0.0` release containing:
+Version 1.0.0 is available from [GitHub Releases](https://github.com/JacobDemory/worlds-hardest-game/releases/tag/v1.0.0) and includes:
 
 ```text
 worlds-hardest-game.jar

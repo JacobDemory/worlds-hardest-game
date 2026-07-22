@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0 — Portfolio Release
+## 1.0.0 — Initial Release
 
-- Reworked the original assignment into a three-level campaign
+- Expanded the original game into a three-level campaign
 - Added horizontal and vertical enemy patrol patterns
 - Added rotating hazards with visible-shape collision detection
 - Added required coin collection and goal validation

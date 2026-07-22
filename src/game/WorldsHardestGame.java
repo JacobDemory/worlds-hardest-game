@@ -83,7 +83,7 @@ public class WorldsHardestGame extends Game implements KeyListener {
         levelTwo.coins.add(new Rectangle(BOARD_X + 535, BOARD_Y + 325, 14, 14));
         levels.add(levelTwo);
 
-        LevelConfig levelThree = new LevelConfig("Level 3: Spin Cycle", "Rotating hazards now matter, but collision matches the visible shape.");
+        LevelConfig levelThree = new LevelConfig("Level 3: Spin Cycle", "Time each move carefully through the rotating hazards.");
         levelThree.enemies.add(new Enemy(255, BOARD_Y + 60, 11, 4.8, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
         levelThree.enemies.add(new Enemy(360, BOARD_Y + BOARD_HEIGHT - 60, 11, 5.0, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
         levelThree.enemies.add(new Enemy(465, BOARD_Y + 60, 11, 4.8, Enemy.Axis.VERTICAL, BOARD_Y + 25, BOARD_Y + BOARD_HEIGHT - 25));
