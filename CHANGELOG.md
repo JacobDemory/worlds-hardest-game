@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 — HUD Copy Update
+
+- Replaced the Level 3 implementation note with player-facing level guidance
+
 ## 1.0.0 — Initial Release
 
 - Expanded the original game into a three-level campaign

@@ -35,7 +35,7 @@ This project began as an early college programming assignment and was overhauled
 
 ## Gameplay
 
-Download the runnable JAR from the [v1.0.0 release](https://github.com/JacobDemory/worlds-hardest-game/releases/tag/v1.0.0).
+Download the runnable JAR from the [latest release](https://github.com/JacobDemory/worlds-hardest-game/releases/latest).
 
 Navigate the red player square from the start zone to the goal zone while avoiding blue enemies and pink spinning hazards. Each level requires collecting all coins before the goal can be completed.
 
@@ -84,7 +84,7 @@ a workflow artifact on every push and pull request.
 
 ## Downloadable Release
 
-Version 1.0.0 is available from [GitHub Releases](https://github.com/JacobDemory/worlds-hardest-game/releases/tag/v1.0.0) and includes:
+Version 1.0.1 is available from [GitHub Releases](https://github.com/JacobDemory/worlds-hardest-game/releases/tag/v1.0.1) and includes:
 
 ```text
 worlds-hardest-game.jar
