@@ -36,6 +36,8 @@ Recent additions are in **bold**
 
 ## Gameplay
 
+Download the runnable JAR from the [v1.0.0 release](https://github.com/JacobDemory/worlds-hardest-game/releases/tag/v1.0.0).
+
 Navigate the red player square from the start zone to the goal zone while avoiding blue enemies and pink spinning hazards. Each level requires collecting all coins before the goal can be completed.
 
 Controls:

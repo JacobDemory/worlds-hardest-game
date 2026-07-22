@@ -7,6 +7,6 @@
 - [x] Changelog summarizes the portfolio overhaul
 - [ ] Complete one manual playthrough of all three levels
 - [ ] Capture a genuine gameplay screenshot or GIF
-- [ ] Create GitHub release tag `v1.0.0`
-- [ ] Upload `dist/worlds-hardest-game.jar` to the release
+- [x] Create GitHub release tag `v1.0.0`
+- [x] Upload `dist/worlds-hardest-game.jar` to the release
 - [ ] Add the screenshot/GIF to the README
