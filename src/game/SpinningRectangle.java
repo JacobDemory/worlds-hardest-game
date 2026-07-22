@@ -30,14 +30,6 @@ public class SpinningRectangle implements IntersectionDetectable {
         this.rotationSpeed = rotationSpeed;
     }
 
-    /**
-     * Backward-compatible constructor for older project code.
-     */
-    public SpinningRectangle(Point initialPosition, double initialRotation) {
-        this(initialPosition.getX(), initialPosition.getY(), 70, 18, 2.0);
-        this.rotation = initialRotation;
-    }
-
     public void move() {
         rotation = (rotation + rotationSpeed) % 360;
     }

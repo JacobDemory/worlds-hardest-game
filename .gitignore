@@ -12,6 +12,8 @@
 # Java
 bin/
 *.class
+build/
+dist/
 
 # Misc
 __MACOSX/

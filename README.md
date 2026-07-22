@@ -55,14 +55,44 @@ N: Restart Full Game
    java -version
    ```
 
-2. **Compile the project**:
+2. **Build and run the project**:
    ```bash
-   javac src/game/*.java
+   ./run.sh
    ```
 
-3. **Run the game**:
+The run script creates a packaged application automatically. You can also build
+and launch it separately:
+
+```bash
+./build.sh
+java -jar dist/worlds-hardest-game.jar
+```
+
+## Testing
+
+Run the dependency-free collision and boundary smoke tests:
+
+```bash
+./test.sh
+```
+
+The GitHub Actions workflow runs these tests, builds the JAR, and uploads it as
+a workflow artifact on every push and pull request.
+
+---
+
+## Downloadable Release
+
+The repository is prepared for a GitHub `v1.0.0` release containing:
+
+```text
+worlds-hardest-game.jar
+```
+
+After downloading the release asset, launch it with:
+
    ```bash
-   java -cp src game.WorldsHardestGame
+   java -jar worlds-hardest-game.jar
    ```
 
 ---
@@ -77,11 +107,15 @@ worlds-hardest-game/
 │       ├── Game.java
 │       ├── IntersectionDetectable.java
 │       ├── Player.java
-│       ├── Point.java
-│       ├── Polygon.java
 │       ├── SpinningRectangle.java
 │       └── WorldsHardestGame.java
-├── assets/
+├── src/test/java/game/
+│   └── CollisionSmokeTest.java
+├── .github/workflows/
+│   └── build.yml
+├── build.sh
+├── run.sh
+├── test.sh
 ├── README.md
 └── .gitignore
 ```
