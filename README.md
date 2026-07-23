@@ -37,6 +37,8 @@ This project began as an early college programming assignment and was overhauled
 
 Download the runnable JAR from the [latest release](https://github.com/JacobDemory/worlds-hardest-game/releases/latest).
 
+![Level 1 gameplay showing the player, moving hazards, coins, and goal](assets/gameplay-level-1.png)
+
 Navigate the red player square from the start zone to the goal zone while avoiding blue enemies and pink spinning hazards. Each level requires collecting all coins before the goal can be completed.
 
 Controls:
@@ -161,5 +163,5 @@ Handles the Java window/canvas setup and double-buffered drawing.
 - Add a level-select screen
 - Add sound effects and background music
 - Add persistent best times/death counts
-- Add screenshots or a short gameplay demo
+- Add a short gameplay GIF
 - Improve visual polish with custom sprites or smoother animations
